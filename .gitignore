@@ -1,0 +1,38 @@
+## [Visual Studio]
+.vs
+[Bb]in
+[Oo]bj
+.user
+.suo
+.userosscache
+.sln.docstates
+
+## [Build Results]
+.exe
+.dll
+.pdb
+.msi
+.msm
+
+## [Log Files]
+.log
+
+## [NuGet Packages]
+.nupkg
+packages
+!packagesbuild
+
+## [OS generated files]
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+## [User-specific files]
+.rsuser
+.suo
+.user
+.userhost
+.userprefs
+
+## [C# Specific]
+.csproj.user

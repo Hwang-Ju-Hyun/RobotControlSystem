@@ -1,0 +1,12 @@
+[
+  {
+    "Name": "New Profile",
+    "Projects": [
+      {
+        "Path": "ControlCenter\\ControlCenter.csproj",
+        "Action": "Start",
+        "DebugTarget": "ControlCenter"
+      }
+    ]
+  }
+]
