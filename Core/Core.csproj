@@ -7,6 +7,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Folder Include="Core\Util\" />
     <Folder Include="Core\PathPlanning\" />
   </ItemGroup>
 

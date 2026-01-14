@@ -10,8 +10,9 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
-
+using ControlServer;
 using Core_lib.Core.Domain;
+using ControlCenter.Server;
 using static Core_lib.Core.Domain.Node;
 
 namespace ControlCenter
@@ -21,12 +22,11 @@ namespace ControlCenter
     /// </summary>
     public partial class MainWindow : Window
     {
-        Process serverProcess;
-        List<Process> clientProcess;
+        List<Process> clientProcess;        
         public MainWindow()
         {
             InitializeComponent();
-            clientProcess= new List<Process>();
+            clientProcess = new List<Process>();
         }
         private void OnNodeClicked(object sender, MouseButtonEventArgs e)
         {
@@ -44,17 +44,11 @@ namespace ControlCenter
         {
             try
             {
-                serverProcess = new Process();
-                serverProcess.StartInfo.FileName = "ControlServer.exe";
-                
-                string path = System.IO.Path.GetFullPath(@"C:\Users\HwangJuhyun\Desktop\HwangJuhyun\MyCoding\RobotControlSimulator\RobotControlSystemSimulator\ControlServer\bin\Debug\net8.0");
-                serverProcess.StartInfo.WorkingDirectory = path;
-
-                serverProcess.StartInfo.UseShellExecute = true; // 콘솔 창을 별도로 띄우려면 true 권장
-                serverProcess.StartInfo.CreateNoWindow = false;
-
-                serverProcess.Start();
-
+                //server = new ControlServer.Server();
+                if(DataContext is MainViewModel vm)
+                {
+                    vm.server.Start();
+                }                
                 // 실행 확인을 위한 로그 (선택 사항)
                 MessageBox.Show("서버가 시작되었습니다.");
             }
@@ -67,7 +61,7 @@ namespace ControlCenter
         {
             try
             {
-                Process p=new Process();
+                Process p = new Process();
                 p.StartInfo.FileName = "RobotClient.exe";
 
                 string path = System.IO.Path.GetFullPath(@"C:\Users\HwangJuhyun\Desktop\HwangJuhyun\MyCoding\RobotControlSimulator\RobotControlSystemSimulator\RobotClient\bin\Debug\net8.0");
@@ -79,13 +73,29 @@ namespace ControlCenter
                 p.Start();
 
                 clientProcess.Add(p);
-                
+
                 MessageBox.Show("서버 접속 성공");
+
+
             }
             catch (Exception ex)
             {
                 MessageBox.Show($"서버 접속 실패: {ex.Message}");
             }
-        }     
+        }
+        private void StartPathFind(object sender, RoutedEventArgs e)
+        {
+            try
+            {
+                if(this.DataContext is MainViewModel vm)
+                {
+                    vm.StartPathFinding();
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+        }
     }
 }

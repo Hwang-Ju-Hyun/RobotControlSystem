@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Text;
 using System.Threading.Tasks;
 using Core_lib.Core.Domain;
@@ -8,7 +9,7 @@ using Core_lib.Core.Domain;
 namespace Core_lib.Core.Protocol
 {
     public class RobotMessage
-    {
+    {          
         public int RobotId {  get; set; }
         public MessageType Type { get; set; }
         public RobotState State {  get; set; }

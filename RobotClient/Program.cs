@@ -7,7 +7,7 @@ class Program
     static async Task Main()
     {
         TcpClient client = new TcpClient();
-        await client.ConnectAsync("127.0.0.1", 5000);
+        await client.ConnectAsync("192.168.45.203", 5000);
 
         NetworkStream stream = client.GetStream();
 

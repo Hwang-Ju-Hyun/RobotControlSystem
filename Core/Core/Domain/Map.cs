@@ -11,7 +11,7 @@ namespace Core_lib.Core.Domain
         public int Row {  get; set; }
         public int Col { get; set; }
 
-        public Node[,] Nodes { get;}
+        public Node[,] Nodes { get; set; }
 
         public Map(int row,int col)
         {
@@ -24,7 +24,11 @@ namespace Core_lib.Core.Domain
             {
                 for(int c=0;c<col;c++)
                 {
-                    Nodes[r, c] = new Node(r,c);
+                    Nodes[r, c] = new Node(r,c,c*col,r*row);
+                    Nodes[r, c].Gn = float.MaxValue;
+                    Nodes[r, c].Hn = 0;
+                    Nodes[r, c].Fn = 0;
+                    Nodes[r, c].Close = false;
                 }
             }
         }
