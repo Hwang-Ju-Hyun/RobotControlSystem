@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text;
@@ -16,6 +17,7 @@ namespace Core.Core.Services
         private static readonly object _lock =new object();
         private RobotManager() { }
         private static RobotManager getInstance=null;
+        
         public static RobotManager GetInstance
         {
             get
@@ -42,11 +44,39 @@ namespace Core.Core.Services
                 }
                 robots[robotId].CurrentState = status;
             }                
+        }                
+        public PathNode EnqueuePath(int robotId, PathNode node)
+        {            
+            if (!robots.TryGetValue(robotId, out var robot))
+            {
+                robot = new Robot(robotId);             
+                robots.Add(robotId, robot);                
+            }
+            robots[robotId].CurrentPath.Enqueue(node);
+            return node;
         }
-        public Dictionary<int, Robot> GetAllRobots()
+        public Robot GetRobot(int robotID)
         {
-            lock(_lock)
-                return robots;
-        } 
+            return robots[robotID];
+        }
+        public List<(int robotId, PathNode node)> TickRobots()
+        {
+            List<(int, PathNode)> moved = new List<(int, PathNode)>();
+
+            lock (_lock)
+            {
+                foreach (var robot in robots.Values)
+                {
+                    if(robot.CurrentPath.Count != 0)
+                    {
+                        PathNode next = robot.CurrentPath.Dequeue();
+                        moved.Add((robot.Id, next));
+                    }                    
+                }
+            }
+
+            return moved;
+        }
+
     }
 }

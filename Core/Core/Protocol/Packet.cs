@@ -21,7 +21,7 @@ namespace Core_lib.Core.Protocol
 
         public MessageType Type { get; }
         public byte[] Payload { get; }
-
+        
         public Packet(MessageType type, byte[] payload)
         {
             Type = type;

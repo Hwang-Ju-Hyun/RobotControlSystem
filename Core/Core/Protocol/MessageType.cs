@@ -9,9 +9,11 @@ namespace Core_lib.Core.Protocol
     public enum MessageType : byte
     {
         STATUS=1,
-        POSITION=2,
+        MOVE=2,
         TASK_ASSIGN=3,
         TASK_COMPELETE=4,
-        HEARTBEAT=5
+        HEARTBEAT=5,
+        ACK=6,
+        ID_ASSIGN
     };    
 }

@@ -12,6 +12,11 @@ using ControlServer;
 using ControlCenter.Service;
 using Core.Core.Services;
 using Core.Domain;
+using System.Windows.Threading;
+using Core_lib.Core.Protocol;
+using ControlCenter.Server;
+using System.Collections;
+using System.Xml.Linq;
 
 namespace ControlCenter
 {
@@ -21,7 +26,18 @@ namespace ControlCenter
         public ObservableCollection<Node> Nodes { get; }
         Node[,] grid;
         Map map;
-        PathResult result=null;
+        PathResult result=null;        
+        DispatcherTimer timer;
+        private ConnectedRobot selectedRobot;
+        public ConnectedRobot SelectedRobot
+        {
+            get => selectedRobot;
+            set
+            {
+                selectedRobot = value;                
+            }
+        }
+
         public ControlServer.Server server { get; }
         public MainViewModel()
         {
@@ -29,6 +45,8 @@ namespace ControlCenter
             Nodes = new ObservableCollection<Node>();
             CreateGrids();
             server = new ControlServer.Server();            
+
+            StartSimulationTimer();
         }
         public void CreateGrids()
         {
@@ -46,17 +64,29 @@ namespace ControlCenter
             map.Nodes = grid;
         }
 
+        public void SetStartNode(ConnectedRobot cr,Node node)
+        {
+            Robot robot = RobotManager.GetInstance.GetRobot(cr.RobotID);
+            robot.StartNode = node;
+        }
+
+        public void SetGoalNode(ConnectedRobot cr, Node node)
+        {
+            Robot robot = RobotManager.GetInstance.GetRobot(cr.RobotID);
+            robot.GoalNode = node;
+        }
+
         public void StartPathFinding()
         {
             PathFind pf = new PathFind();
-            Dictionary<int,Robot> d_rb=RobotManager.GetInstance.GetAllRobots();
+            
             Node start=null,end=null;
             for(int r=0;r<map.Row;r++)
             {
                 for(int c=0;c<map.Col;c++)
                 {
                     if (grid[r, c].Type==Node.NodeType.START)
-                    {
+                    {                        
                         start = grid[r, c];
                     }
                     else if(grid[r, c].Type == Node.NodeType.GOAL)
@@ -75,7 +105,16 @@ namespace ControlCenter
             }
             else
             {
-                result = pf.FindPath(d_rb[1], start, end, map);
+                if (SelectedRobot == null)
+                {
+                    MessageBox.Show("로봇을 선택하세요");
+                    return;
+                }
+                Robot robot = RobotManager.GetInstance.GetRobot(SelectedRobot.RobotID);
+
+                result = pf.FindPath(robot, robot.StartNode, robot.GoalNode, map);
+
+                //result = pf.FindPath(RobotManager.GetInstance.GetRobot(1), start, end, map);
                 if (result.Found)
                 {
                     foreach (PathNode p in result.Path)
@@ -93,7 +132,18 @@ namespace ControlCenter
                             grid[p.Row, p.Col].Type = Node.NodeType.PATH;
                         }
                     }
-                    _=SimulateRobot();
+                    RobotMessage move = new RobotMessage
+                    {
+                        RobotId = 1,
+                        Type = MessageType.MOVE,
+                        Path = result.Path
+                    };
+                    foreach(PathNode p in result.Path)
+                    {
+                        RobotManager.GetInstance.EnqueuePath(move.RobotId, p);
+                    }
+                    
+                    server.Send(ProtocolParser.ObjectToPacket(move),server.ConnectedClient[0]);
                 }                
                 else
                 {
@@ -109,6 +159,22 @@ namespace ControlCenter
 
                 await Task.Delay(300);
             }
+        }        
+        private void StartSimulationTimer()
+        {
+            timer = new DispatcherTimer();
+            timer.Interval = TimeSpan.FromMilliseconds(300);
+            timer.Tick += OnSimulationTick;
+            timer.Start();
+        }
+
+        private void OnSimulationTick(object sender,EventArgs e)
+        {
+            List<(int, PathNode)> movedRobots = RobotManager.GetInstance.TickRobots();                                    
+            foreach (var (_, node) in movedRobots)
+            {                                
+                grid[node.Row, node.Col].Type = Node.NodeType.ROBOT;
+            }            
         }
     }
 }

@@ -9,20 +9,21 @@ using System.Threading.Tasks;
 using System.Windows.Media;
 using Core.Domain;
 using Core_lib.Core.Domain;
+using Core.Core.Services;
 
 namespace ControlCenter.Service
 {
     public class PathResult
     {
         public bool Found { get; set; }
-        public IReadOnlyList<PathNode> Path { get; set; }
+        public List<PathNode> Path { get; set; }
     }
 
-    public struct PathNode
-    {
-        public int Row;
-        public int Col;
-    }
+    //public struct PathNode
+    //{
+    //    public int Row;
+    //    public int Col;
+    //}
 
     public class PathFind
     {
@@ -134,12 +135,14 @@ namespace ControlCenter.Service
         }
         private PathResult BuildPath(Node goal)
         {
-            List<PathNode> list = new List<PathNode>();
-            Node cur = goal;
-
+            List<PathNode> list = new List<Core.Core.Services.PathNode>();
+            Node cur = goal;            
             while (cur != null)
             {
-                list.Add(new PathNode{Row = cur.Row,Col = cur.Col});
+                Core.Core.Services.PathNode p = new Core.Core.Services.PathNode();
+                p.Row = cur.Row;
+                p.Col = cur.Col;
+                list.Add(p);
                 cur = cur.Parent;
             }
 

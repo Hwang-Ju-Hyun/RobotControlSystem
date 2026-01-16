@@ -14,6 +14,7 @@ using ControlServer;
 using Core_lib.Core.Domain;
 using ControlCenter.Server;
 using static Core_lib.Core.Domain.Node;
+using Core.Core.Services;
 
 namespace ControlCenter
 {    
@@ -26,18 +27,38 @@ namespace ControlCenter
         public MainWindow()
         {
             InitializeComponent();
-            clientProcess = new List<Process>();
+            clientProcess = new List<Process>();            
         }
         private void OnNodeClicked(object sender, MouseButtonEventArgs e)
         {
-            if (sender is Rectangle rect && rect.DataContext is Node node)
+            //if (sender is Rectangle rect && rect.DataContext is Node node)
+            //{
+            //    if (Keyboard.IsKeyDown(Key.LeftShift))
+            //        node.Type = NodeType.START;
+            //    else if (Keyboard.IsKeyDown(Key.LeftCtrl))
+            //        node.Type = NodeType.GOAL;
+            //    else
+            //        node.Type = node.Type == NodeType.OBSTACLE ? NodeType.EMPTY : NodeType.OBSTACLE;
+            //}
+
+            if (DataContext is MainViewModel vm)
             {
-                if (Keyboard.IsKeyDown(Key.LeftShift))
-                    node.Type = NodeType.START;
-                else if (Keyboard.IsKeyDown(Key.LeftCtrl))
-                    node.Type = NodeType.GOAL;
-                else
-                    node.Type = node.Type == NodeType.OBSTACLE ? NodeType.EMPTY : NodeType.OBSTACLE;
+                if (vm.SelectedRobot == null)
+                {
+                    MessageBox.Show("로봇을 먼저 선택하세요");
+                    return;
+                }
+                if (sender is Rectangle rect && rect.DataContext is Node node)
+                {
+                    if (Keyboard.IsKeyDown(Key.LeftShift))
+                    {
+                        vm.SetStartNode(vm.SelectedRobot, node);
+                    }
+                    else if (Keyboard.IsKeyDown(Key.LeftCtrl))
+                    {
+                        vm.SetGoalNode(vm.SelectedRobot, node);
+                    }
+                }                
             }
         }
         private void OnStartServer(object sender, RoutedEventArgs e)
@@ -64,7 +85,7 @@ namespace ControlCenter
                 Process p = new Process();
                 p.StartInfo.FileName = "RobotClient.exe";
 
-                string path = System.IO.Path.GetFullPath(@"C:\Users\HwangJuhyun\Desktop\HwangJuhyun\MyCoding\RobotControlSimulator\RobotControlSystemSimulator\RobotClient\bin\Debug\net8.0");
+                string path = System.IO.Path.GetFullPath(@"C:\Users\HwangJuhyun\Desktop\HwangJuhyun\MyCoding\RobotControlSimulator\RobotControlSystemSimulator\RobotClient\bin\Debug\net8.0-windows");
                 p.StartInfo.WorkingDirectory = path;
 
                 p.StartInfo.UseShellExecute = true; // 콘솔 창을 별도로 띄우려면 true 권장

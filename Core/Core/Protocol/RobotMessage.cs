@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Core.Services;
 using Core_lib.Core.Domain;
 
 namespace Core_lib.Core.Protocol
@@ -11,9 +12,10 @@ namespace Core_lib.Core.Protocol
     public class RobotMessage
     {          
         public int RobotId {  get; set; }
-        public MessageType Type { get; set; }
-        public RobotState State {  get; set; }
-        
+        public MessageType Type { get; set; }        
+        public RobotState State {  get; set; }          
+        public List<PathNode> Path {  get; set; }
+
         public RobotState GetTypeFromData(string data)
         {
             RobotState type = RobotState.IDLE;
@@ -34,5 +36,7 @@ namespace Core_lib.Core.Protocol
             }
             return type;
         }
+        public int Row {  get; set; }
+        public int Col {  get; set; }
     }
 }

@@ -11,7 +11,7 @@ namespace Core_lib.Core.Protocol
     public static class ProtocolParser
     {
         //RobotMessage → Packet
-        public static Packet ToPacket(RobotMessage message)
+        public static Packet ObjectToPacket(RobotMessage message)
         {
             string json = JsonSerializer.Serialize(message);
             byte[] payload = System.Text.Encoding.UTF8.GetBytes(json);
@@ -20,11 +20,11 @@ namespace Core_lib.Core.Protocol
         }
 
         //Packet → RobotMessage
-        public static RobotMessage FromPacket(Packet packet)
+        public static RobotMessage PacketToObject(Packet packet)
         {
             //GetString : byte to Json format
             string json = System.Text.Encoding.UTF8.GetString(packet.Payload);
-            /*Deseialize : Json format conver to Object*/
+            /*Deseialize : Json format convert to Object*/
             return JsonSerializer.Deserialize<RobotMessage>(json);
         }
     }

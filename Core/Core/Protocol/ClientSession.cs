@@ -5,7 +5,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Core_lib.Core.Protocol;
 
-namespace ControlServer
+namespace Core_lib.Core.Protocol
 {
     public class ClientSession
     {

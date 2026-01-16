@@ -36,12 +36,13 @@
                            FontWeight="Bold"
                            Margin="0,0,0,8"/>
 
-                <ListBox ItemsSource="{Binding server.ConnectedClient}">
+                <ListBox ItemsSource="{Binding server.ConnectedClient}"
+                          SelectedItem="{Binding SelectedRobot, Mode=TwoWay}">
                     <ListBox.ItemTemplate>
                         <DataTemplate>
                             <StackPanel Orientation="Horizontal" Margin="2">
                                 <Ellipse Width="10" Height="10" Fill="LimeGreen" Margin="0,0,5,0"/>
-                                <TextBlock Text="{Binding Ip_Address}" VerticalAlignment="Center"/>
+                                <TextBlock Text="{Binding IP_ID}" VerticalAlignment="Center"/>
                             </StackPanel>
                         </DataTemplate>
                     </ListBox.ItemTemplate>
