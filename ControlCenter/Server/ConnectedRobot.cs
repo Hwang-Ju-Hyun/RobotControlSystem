@@ -4,6 +4,7 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
+using Core.Domain;
 
 namespace ControlCenter.Server
 {
@@ -15,6 +16,6 @@ namespace ControlCenter.Server
 
         public TcpClient Client { get; set; }
 
-        public NetworkStream stream => Client.GetStream();
+        public NetworkStream stream => Client.GetStream();        
     }
 }

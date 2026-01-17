@@ -36,17 +36,15 @@ class Program
     static async Task Main()
     {
         NetworkClient nc = new NetworkClient();
-        await nc.Connect("192.168.45.246", 5000);        
+        await nc.Connect("172.18.185.34", 5000);        
 
         Console.WriteLine("Connected to server");
         controller=new RobotController();
         ClientSession session = new ClientSession();
 
-
         // 1️ 최초 STATUS 전송
         RobotMessage status = new RobotMessage
-        {
-            //RobotId = 1,
+        {            
             Type = MessageType.STATUS,
             State = RobotState.IDLE
         };

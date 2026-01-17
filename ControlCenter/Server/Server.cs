@@ -15,15 +15,27 @@ namespace ControlServer
 {
     class Server
     {
-        public ObservableCollection<ConnectedRobot> ConnectedClient {get;}
-
+        public ObservableCollection<ConnectedRobot> ConnectedClient {get;}        
         private int nextRobotId = 1;
         private readonly object idLock = new object();
         static int RobotId = 0;
         public Server()
         {
             ConnectedClient = new ObservableCollection<ConnectedRobot>();
-        }                
+        }
+
+
+        Dictionary<int, ConnectedRobot> sessions = new Dictionary<int, ConnectedRobot>();
+        public ConnectedRobot RegisterSession(int robotId,ConnectedRobot cr)
+        {
+            return (sessions[robotId]= cr);
+        }
+
+        public ConnectedRobot GetSession(int robotId)
+        {
+            return sessions[robotId];
+        }
+
         public async Task Start()
         {
             const int port = 5000;
@@ -95,11 +107,12 @@ namespace ControlServer
                         if (robot_msg.Type == MessageType.ID_ASSIGN)
                         {
                             Debug.WriteLine($"[RECV from Client] IP :{((IPEndPoint)client.Client.RemoteEndPoint).ToString()}, ID : {robot_msg.RobotId}, Type : {robot_msg.Type}, State : {robot_msg.State}");
+                            RobotManager.GetInstance.UpdateStatus(robot_msg.RobotId, robot_msg.State);
                         }                        
                        
                         if (robot_msg.Type == MessageType.STATUS)
                         {
-                            RobotManager.GetInstance.UpdateStatus(robot_msg.RobotId, robot_msg.State);                            
+                            RobotManager.GetInstance.UpdateStatus(robot_msg.RobotId, robot_msg.State);
                         }
                         if(robot_msg.State== RobotState.MOVING)
                         {

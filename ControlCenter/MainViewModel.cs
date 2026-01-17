@@ -68,6 +68,7 @@ namespace ControlCenter
         {
             Robot robot = RobotManager.GetInstance.GetRobot(cr.RobotID);
             robot.StartNode = node;
+            
         }
 
         public void SetGoalNode(ConnectedRobot cr, Node node)
@@ -78,6 +79,9 @@ namespace ControlCenter
 
         public void StartPathFinding()
         {
+            if (SelectedRobot == null)
+                return;
+
             PathFind pf = new PathFind();
             
             Node start=null,end=null;
@@ -110,11 +114,9 @@ namespace ControlCenter
                     MessageBox.Show("로봇을 선택하세요");
                     return;
                 }
-                Robot robot = RobotManager.GetInstance.GetRobot(SelectedRobot.RobotID);
-
+                Robot robot = RobotManager.GetInstance.GetRobot(SelectedRobot.RobotID);                
                 result = pf.FindPath(robot, robot.StartNode, robot.GoalNode, map);
-
-                //result = pf.FindPath(RobotManager.GetInstance.GetRobot(1), start, end, map);
+                
                 if (result.Found)
                 {
                     foreach (PathNode p in result.Path)
@@ -134,7 +136,7 @@ namespace ControlCenter
                     }
                     RobotMessage move = new RobotMessage
                     {
-                        RobotId = 1,
+                        RobotId = robot.Id,
                         Type = MessageType.MOVE,
                         Path = result.Path
                     };

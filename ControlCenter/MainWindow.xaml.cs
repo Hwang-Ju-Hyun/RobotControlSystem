@@ -15,6 +15,7 @@ using Core_lib.Core.Domain;
 using ControlCenter.Server;
 using static Core_lib.Core.Domain.Node;
 using Core.Core.Services;
+using Core.Domain;
 
 namespace ControlCenter
 {    
@@ -30,17 +31,7 @@ namespace ControlCenter
             clientProcess = new List<Process>();            
         }
         private void OnNodeClicked(object sender, MouseButtonEventArgs e)
-        {
-            //if (sender is Rectangle rect && rect.DataContext is Node node)
-            //{
-            //    if (Keyboard.IsKeyDown(Key.LeftShift))
-            //        node.Type = NodeType.START;
-            //    else if (Keyboard.IsKeyDown(Key.LeftCtrl))
-            //        node.Type = NodeType.GOAL;
-            //    else
-            //        node.Type = node.Type == NodeType.OBSTACLE ? NodeType.EMPTY : NodeType.OBSTACLE;
-            //}
-
+        {            
             if (DataContext is MainViewModel vm)
             {
                 if (vm.SelectedRobot == null)
@@ -52,13 +43,17 @@ namespace ControlCenter
                 {
                     if (Keyboard.IsKeyDown(Key.LeftShift))
                     {
-                        vm.SetStartNode(vm.SelectedRobot, node);
+                        vm.SetStartNode(vm.SelectedRobot, node);                        
+                        node.Type = NodeType.START;
                     }
                     else if (Keyboard.IsKeyDown(Key.LeftCtrl))
                     {
                         vm.SetGoalNode(vm.SelectedRobot, node);
+                        node.Type = NodeType.GOAL;
                     }
-                }                
+                    else
+                        node.Type = node.Type == NodeType.OBSTACLE ? NodeType.EMPTY : NodeType.OBSTACLE;
+                }
             }
         }
         private void OnStartServer(object sender, RoutedEventArgs e)

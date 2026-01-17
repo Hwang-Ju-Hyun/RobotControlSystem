@@ -13,7 +13,7 @@ namespace Core.Core.Services
 {
     public class RobotManager
     {
-        private static readonly Dictionary<int, Robot> robots=new Dictionary<int, Robot>();
+        private static readonly Dictionary<int, Robot> robots=new Dictionary<int, Robot>();        
         private static readonly object _lock =new object();
         private RobotManager() { }
         private static RobotManager getInstance=null;
