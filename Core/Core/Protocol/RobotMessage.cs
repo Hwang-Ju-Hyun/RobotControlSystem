@@ -16,6 +16,27 @@ namespace Core_lib.Core.Protocol
         public RobotState State {  get; set; }          
         public List<PathNode> Path {  get; set; }
 
+        public string GetStringFromState(RobotState state)
+        {
+            string result = null;
+            switch(state)
+            {
+                case RobotState.IDLE:
+                    result = "IDLE";
+                    break;
+                case RobotState.MOVING:
+                    result = "MOVE";
+                    break;
+                case RobotState.END:
+                    result = "END";
+                    break;
+                default:
+                    result = "IDLE";
+                    break;
+            }
+            return result;
+        }
+
         public RobotState GetTypeFromData(string data)
         {
             RobotState type = RobotState.IDLE;

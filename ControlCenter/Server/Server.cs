@@ -13,10 +13,21 @@ using Core_lib.Core.Protocol;
 
 namespace ControlServer
 {
+    public class ClientStatePacket
+    {        
+        public string ClientID { get; set; }
+        public int Row { get; set; }
+        public int Col { get; set; }
+        public string State { get; set; }
+    }
+
     class Server
     {
-        public ObservableCollection<ConnectedRobot> ConnectedClient {get;}        
-        private int nextRobotId = 1;
+        public ObservableCollection<ConnectedRobot> ConnectedClient {get;}                
+        public event Action<ClientStatePacket> OnClientStateReceived;
+        
+
+        private int nextRobotId = 0;
         private readonly object idLock = new object();
         static int RobotId = 0;
         public Server()
@@ -34,7 +45,7 @@ namespace ControlServer
         public ConnectedRobot GetSession(int robotId)
         {
             return sessions[robotId];
-        }
+        }        
 
         public async Task Start()
         {
@@ -42,12 +53,11 @@ namespace ControlServer
             TcpListener listener = new TcpListener(IPAddress.Any, port);
             listener.Start();
 
-            Debug.WriteLine("Control Server Started on port : 5000");
-
+            Debug.WriteLine("Control Server Started on port : 5000");            
 
             while (true)
             {
-                TcpClient client = await listener.AcceptTcpClientAsync();                   
+                TcpClient client = await listener.AcceptTcpClientAsync();
                 IPEndPoint clientIpPoint = ((IPEndPoint)client.Client.RemoteEndPoint);
                 string ip_str = clientIpPoint.ToString();
 
@@ -87,13 +97,14 @@ namespace ControlServer
             ClientSession session = new ClientSession();
             NetworkStream stream = client.GetStream();
             byte[] buffer = new byte[1024];
+            
             try
             {
                 while (true)
                 {
                     /*ReadAsync 
                      return : length of buffer
-                    */
+                    */                    
                     int bytesRead_length = await stream.ReadAsync(buffer, 0, buffer.Length);
                     if (bytesRead_length == 0)
                         break;
@@ -104,23 +115,43 @@ namespace ControlServer
                     foreach (Packet packet in session.ExtractPackets())
                     {
                         RobotMessage robot_msg = ProtocolParser.PacketToObject(packet);
+
                         if (robot_msg.Type == MessageType.ID_ASSIGN)
                         {
-                            Debug.WriteLine($"[RECV from Client] IP :{((IPEndPoint)client.Client.RemoteEndPoint).ToString()}, ID : {robot_msg.RobotId}, Type : {robot_msg.Type}, State : {robot_msg.State}");
+                            //Debug.WriteLine($"[RECV from Client] IP :{((IPEndPoint)client.Client.RemoteEndPoint).ToString()}, ID : {robot_msg.RobotId}, Type : {robot_msg.Type}, State : {robot_msg.State}");
                             RobotManager.GetInstance.UpdateStatus(robot_msg.RobotId, robot_msg.State);
-                        }                        
-                       
+                        }
                         if (robot_msg.Type == MessageType.STATUS)
                         {
-                            RobotManager.GetInstance.UpdateStatus(robot_msg.RobotId, robot_msg.State);
+                            if(robot_msg.Row!=-1|| robot_msg.Col != -1)
+                            {
+                                Debug.WriteLine($"[RECV from Client] IP :{((IPEndPoint)client.Client.RemoteEndPoint).ToString()}, ID : {robot_msg.RobotId}, Type : {robot_msg.Type}, State : {robot_msg.State}");
+                                RobotManager.GetInstance.UpdateStatus(robot_msg.RobotId, robot_msg.State);
+                            }                            
                         }
-                        if(robot_msg.State== RobotState.MOVING)
+
+
+                        ClientStatePacket state_packet = new ClientStatePacket
+                        {
+                            ClientID = robot_msg.RobotId.ToString(),
+                            Row = robot_msg.Row,
+                            Col = robot_msg.Col,
+                            State = robot_msg.GetStringFromState(robot_msg.State)
+                        };
+
+
+                        if (robot_msg.State == RobotState.MOVING)
                         {
                             Debug.WriteLine($"Row : {robot_msg.Row}, Col : {robot_msg.Col}");
-                        }
-                        else if(robot_msg.State == RobotState.END)
+                        }                        
+                        else if (robot_msg.State == RobotState.END)
                         {
-                            MessageBox.Show($"Robot : {robot_msg.RobotId}  Arrived");                            
+                            MessageBox.Show($"Robot : {robot_msg.RobotId}  Arrived");
+                        }
+                        if (OnClientStateReceived != null)
+                        {                                       
+                            if(state_packet.State==robot_msg.GetStringFromState(RobotState.END)||(state_packet.Row!=-1|| state_packet.Col != -1))
+                                OnClientStateReceived.Invoke(state_packet);
                         }
                     }
                     //ReceivedData(buffer, bytesRead_length);

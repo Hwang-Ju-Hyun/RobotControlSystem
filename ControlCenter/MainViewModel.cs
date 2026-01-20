@@ -24,6 +24,7 @@ namespace ControlCenter
     class MainViewModel 
     {        
         public ObservableCollection<Node> Nodes { get; }
+        public ObservableCollection<LogMessage> LogMessages { get; }=new ObservableCollection<LogMessage>();
         Node[,] grid;
         Map map;
         PathResult result=null;        
@@ -39,15 +40,32 @@ namespace ControlCenter
         }
 
         public ControlServer.Server server { get; }
+        
         public MainViewModel()
         {
             map = new Map(30, 30);
             Nodes = new ObservableCollection<Node>();
             CreateGrids();
-            server = new ControlServer.Server();            
-
+            server = new ControlServer.Server();
+            server.OnClientStateReceived += OnClientStateReceive;
             StartSimulationTimer();
         }
+
+        private void OnClientStateReceive(ClientStatePacket packet)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                LogMessages.Add(new LogMessage
+                {
+                    Time=DateTime.Now,
+                    Row = packet.Row,
+                    ClientID = packet.ClientID,
+                    Col = packet.Col,
+                    State = packet.State
+                });
+            });
+        }
+
         public void CreateGrids()
         {
             grid = new Node[30, 30];
@@ -81,77 +99,50 @@ namespace ControlCenter
         {
             if (SelectedRobot == null)
                 return;
-
-            PathFind pf = new PathFind();
             
-            Node start=null,end=null;
-            for(int r=0;r<map.Row;r++)
+            // 1. 선택된 로봇의 도메인 모델 가져오기
+            Robot robot = RobotManager.GetInstance.GetRobot(SelectedRobot.RobotID);
+
+            // 2. 전역 그리드를 뒤지는 대신, 로봇이 이미 가진 노드 정보를 사용
+            if (robot.StartNode == null || robot.GoalNode == null)
             {
-                for(int c=0;c<map.Col;c++)
+                MessageBox.Show($"로봇 {robot.Id}의 시작점 또는 목적지가 설정되지 않았습니다.");
+                return;
+            }
+                                    
+            PathFind pf = new PathFind();
+            result = pf.FindPath(robot, robot.StartNode, robot.GoalNode, map);
+            if (result.Found)
+            {
+                // 3. 경로 시각화 (현재 그리드에 표시)
+                foreach (PathNode p in result.Path)
                 {
-                    if (grid[r, c].Type==Node.NodeType.START)
-                    {                        
-                        start = grid[r, c];
-                    }
-                    else if(grid[r, c].Type == Node.NodeType.GOAL)
+                    // 시작/끝 제외하고 경로 표시
+                    if (grid[p.Row, p.Col].Type != Node.NodeType.START &&
+                        grid[p.Row, p.Col].Type != Node.NodeType.GOAL)
                     {
-                        end = grid[r, c];
+                        grid[p.Row, p.Col].Type = Node.NodeType.PATH;
                     }
                 }
-            }
-            if (start == null)
-            {
-                MessageBox.Show("Start Node is not exist");
-            }
-            else if (end == null)
-            {
-                MessageBox.Show("End Node is not exist");
-            }
-            else
-            {
-                if (SelectedRobot == null)
+
+                // 4. 해당 로봇에게 명령 전송
+                RobotMessage move = new RobotMessage
                 {
-                    MessageBox.Show("로봇을 선택하세요");
-                    return;
+                    RobotId = robot.Id,
+                    Type = MessageType.MOVE,
+                    Path = result.Path
+                };
+
+                // 로봇 매니저의 큐에 경로 추가 (관제 화면 동기화용)
+                foreach (PathNode p in result.Path)
+                {
+                    RobotManager.GetInstance.EnqueuePath(move.RobotId, p);
                 }
-                Robot robot = RobotManager.GetInstance.GetRobot(SelectedRobot.RobotID);                
-                result = pf.FindPath(robot, robot.StartNode, robot.GoalNode, map);
-                
-                if (result.Found)
-                {
-                    foreach (PathNode p in result.Path)
-                    {
-                        if (p.Row == start.Row &&p.Col==start.Col)
-                        {
-                            grid[p.Row, p.Col].Type = Node.NodeType.START;
-                        }                 
-                        else if(p.Row == end.Row && p.Col == end.Col)
-                        {
-                            grid[p.Row, p.Col].Type = Node.NodeType.GOAL;
-                        }
-                        else
-                        {
-                            grid[p.Row, p.Col].Type = Node.NodeType.PATH;
-                        }
-                    }
-                    RobotMessage move = new RobotMessage
-                    {
-                        RobotId = robot.Id,
-                        Type = MessageType.MOVE,
-                        Path = result.Path
-                    };
-                    foreach(PathNode p in result.Path)
-                    {
-                        RobotManager.GetInstance.EnqueuePath(move.RobotId, p);
-                    }
-                    
-                    server.Send(ProtocolParser.ObjectToPacket(move),server.ConnectedClient[0]);
-                }                
-                else
-                {
-                    MessageBox.Show("Can't find path");
-                }
-            }            
+
+                // 특정 클라이언트에게만 메시지 전송
+                server.Send(ProtocolParser.ObjectToPacket(move), SelectedRobot);
+            }
+            map.Clear(map.Row, map.Col);
         }
         public async Task SimulateRobot()
         {

@@ -33,6 +33,23 @@ namespace Core_lib.Core.Domain
             }
         }
 
+        public void Clear(int row, int col)
+        {
+            this.Row = row;
+            this.Col = col;            
+
+            for (int r = 0; r < row; r++)
+            {
+                for (int c = 0; c < col; c++)
+                {                
+                    Nodes[r, c].Gn = float.MaxValue;
+                    Nodes[r, c].Hn = 0;
+                    Nodes[r, c].Fn = 0;
+                    Nodes[r, c].Close = false;
+                }
+            }
+        }
+
         public IEnumerable<Node> GetNeighbors(Node node)
         {
             //12 -> 11 Clockwise

@@ -36,7 +36,7 @@ class Program
     static async Task Main()
     {
         NetworkClient nc = new NetworkClient();
-        await nc.Connect("172.18.185.34", 5000);        
+        await nc.Connect("192.168.45.244", 5000);        
 
         Console.WriteLine("Connected to server");
         controller=new RobotController();
@@ -44,9 +44,11 @@ class Program
 
         // 1️ 최초 STATUS 전송
         RobotMessage status = new RobotMessage
-        {            
+        {
             Type = MessageType.STATUS,
-            State = RobotState.IDLE
+            State = RobotState.IDLE,
+            Row = -1,
+            Col = -1
         };
 
         //RobotMessage → Packet
@@ -100,6 +102,7 @@ class Program
                     // TODO: 여기서 실제 이동 로직 실행
                     // ex) 로컬 경로 큐에 추가                                                    
                 }
+                
             }
         }
 
@@ -121,7 +124,8 @@ class Program
                     Row = next.Row,
                     Col = next.Col,
                     State = RobotState.MOVING
-                };                
+                };
+                await nc.Send(status);
             }
             else if (!controller.HasPath&&status.State==RobotState.MOVING)
             {
@@ -133,8 +137,30 @@ class Program
                     Col = -1,
                     State = RobotState.END
                 };
-            }            
-            await nc.Send(status);
+                Console.WriteLine("End~~~~");
+                await nc.Send(status);
+            }
+            else
+            {
+                status = new RobotMessage
+                {
+                    Type = MessageType.STATUS,
+                    RobotId = RobotID,
+                    Row = -1,
+                    Col = -1,
+                    State = RobotState.IDLE
+                };
+                await nc.Send(status);
+            }
+            
+            //if(status.State==RobotState.IDLE)
+            //{
+            //    await Task.Delay(30300);
+            //}
+            //else
+            //{
+                
+            //}
             await Task.Delay(300);
         }
     }

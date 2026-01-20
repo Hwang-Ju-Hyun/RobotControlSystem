@@ -150,20 +150,19 @@
         <!-- Log (BOTTOM)          -->
         <!-- ===================== -->
         <Border Grid.Row="1"
-                Grid.ColumnSpan="2"
-                BorderBrush="Gray"
-                BorderThickness="1"
-                Padding="8">
-            <StackPanel>
-                <TextBlock Text="Log"
-                           FontWeight="Bold"
-                           Margin="0,0,0,6"/>
-
-                <TextBox Height="120"
-                         IsReadOnly="True"
-                         Text="System initialized..."
-                         VerticalScrollBarVisibility="Auto"/>
-            </StackPanel>
+        Grid.ColumnSpan="2"
+        BorderBrush="Gray"
+        BorderThickness="1"
+        Padding="8">
+            <Grid>
+                <ListBox x:Name="LogListBox"
+                 ItemsSource="{Binding LogMessages}"
+                 FontFamily="Consolas"
+                 FontSize="12"
+                 ScrollViewer.VerticalScrollBarVisibility="Auto"
+                 ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                </ListBox>
+            </Grid>
         </Border>
 
     </Grid>
